@@ -210,4 +210,4 @@ Certifique-se de que a pasta no Syncthing está em modo *Send Only* no Windows e
 
 ## Licença
 
-Distribuído sob a licença MIT. Sinta-se à vontade para fazer *fork* e adaptar para o seu próprio fluxo entre navegadores.
+Distribuído sob a licença [MIT](LICENSE). Sinta-se à vontade para fazer *fork* e adaptar para o seu próprio fluxo entre navegadores.
