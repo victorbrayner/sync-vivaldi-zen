@@ -1,0 +1,24 @@
+# Logs e artefatos locais do agente
+agent/agent.log
+agent/agent.log.old
+
+# Configuração pessoal (se você preferir manter uma cópia separada)
+agent/config.local.json
+
+# Arquivos gerados pelo agente (caso outputDir aponte para dentro do repositório)
+tabs.json
+tabs-data.js
+heartbeat.json
+heartbeat.js
+index.html
+.tmp-*.part
+sync-conflict-*
+
+# Ferramentas de IA / agentes locais
+.agents/
+skills-lock.json
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini

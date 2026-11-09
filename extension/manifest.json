@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Abas do Vivaldi para Syncthing",
+  "version": "1.0.0",
+  "description": "Exporta as abas abertas do Vivaldi para uma pasta sincronizada pelo Syncthing.",
+  "permissions": ["tabs", "tabGroups", "storage", "alarms"],
+  "host_permissions": ["http://127.0.0.1/*", "http://localhost/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Abas do Vivaldi — enviar snapshot agora"
+  }
+}

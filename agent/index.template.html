@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Abas do Vivaldi</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --panel-2: #f0f2f5;
+    --text: #1c1f24;
+    --muted: #6b7280;
+    --line: #e2e5ea;
+    --accent: #4b6bfb;
+    --accent-soft: #e8ecff;
+    --ok: #1f9d61;
+    --warn: #c07a00;
+    --bad: #c0392b;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(16, 24, 40, .06);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12141a;
+      --panel: #1a1d25;
+      --panel-2: #222631;
+      --text: #e7e9ee;
+      --muted: #9aa1ae;
+      --line: #2a2f3a;
+      --accent: #8ea2ff;
+      --accent-soft: #232a44;
+      --ok: #4ade80;
+      --warn: #fbbf24;
+      --bad: #f87171;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding-bottom: 48px;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 20px 12px;
+  }
+  .top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-size: 17px;
+    font-weight: 650;
+    margin: 0;
+    letter-spacing: -.01em;
+  }
+  .device {
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .status .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .status.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); border-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+  .status.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+  .status.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
+
+  .meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 0; }
+  .search-wrap svg {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; opacity: .55; pointer-events: none;
+  }
+  #search {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+  }
+  #search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+  #refresh {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 550;
+    white-space: nowrap;
+  }
+  #refresh:hover { background: var(--panel-2); }
+
+  main { padding: 16px 20px 0; max-width: 1100px; margin: 0 auto; }
+  .empty { color: var(--muted); text-align: center; padding: 48px 16px; }
+
+  .window {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .window-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 14px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .window-head:hover { background: var(--panel-2); }
+  .window-title { font-weight: 650; font-size: 13.5px; }
+  .window-count { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .chevron { width: 14px; color: var(--muted); font-size: 11px; flex: none; }
+
+  .tabs { padding: 4px 8px 8px; }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    padding: 2px 6px 2px 0;
+  }
+  .tab:hover { background: var(--panel-2); }
+  .tab-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+    padding: 6px 6px 6px 8px;
+    border-radius: 8px;
+  }
+  .favicon {
+    flex: none;
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    overflow: hidden;
+    text-transform: uppercase;
+  }
+  .favicon img { width: 16px; height: 16px; display: block; }
+  .tab-texts { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13.5px;
+  }
+  .tab-meta { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .tab-domain {
+    font-size: 11.5px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .badge {
+    flex: none;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: .02em;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .badge-active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); background: var(--accent-soft); }
+  .badge-focus { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 35%, transparent); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+  .badge-pin { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, transparent); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+  .btn-copy {
+    flex: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11.5px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0.55;
+  }
+  .tab:hover .btn-copy, .btn-copy:focus-visible, .tab:active .btn-copy { opacity: 1; }
+  .btn-copy:hover { background: var(--panel); color: var(--text); }
+
+  .stack {
+    margin: 6px 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--panel-2) 45%, transparent);
+  }
+  .stack-head { display: flex; align-items: center; gap: 6px; padding: 2px 8px 2px 2px; }
+  .stack-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    padding: 7px 8px;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 7px;
+  }
+  .stack-toggle:hover { background: color-mix(in srgb, var(--panel) 70%, transparent); }
+  .stack-name { font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stack-count {
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 0 7px;
+    border-radius: 999px;
+    flex: none;
+  }
+  .btn-open-all {
+    flex: none;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 11.5px;
+    font-weight: 550;
+    padding: 4px 9px;
+    border-radius: 7px;
+    cursor: pointer;
+    opacity: 0.55;
+  }
+  .stack-head:hover .btn-open-all, .btn-open-all:focus-visible, .stack-head:active .btn-open-all { opacity: 1; }
+  .btn-open-all:hover { border-color: var(--accent); color: var(--accent); }
+  .stack-tabs { padding: 0 6px 6px; }
+
+  footer {
+    max-width: 1100px;
+    margin: 18px auto 0;
+    padding: 0 20px;
+    color: var(--muted);
+    font-size: 11.5px;
+  }
+  kbd {
+    font: inherit;
+    font-size: 11px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 4px;
+    background: var(--panel);
+  }
+
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 550;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease, transform .15s ease;
+    max-width: min(90vw, 520px);
+    text-align: center;
+    z-index: 50;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Abas do Vivaldi</h1>
+    <span class="device" id="device"></span>
+    <span class="status bad" id="status"><span class="dot"></span><span id="statusText">Aguardando dados</span></span>
+  </div>
+  <div class="meta" id="meta"></div>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="Buscar por título ou URL…" autocomplete="off" spellcheck="false" aria-label="Buscar abas">
+    </div>
+    <button id="refresh" type="button" title="Buscar dados atualizados agora">Atualizar</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  Clique numa aba para abrir no Zen · meio-clique abre em segundo plano · botão “copiar” copia a URL.
+  O conteúdo é somente leitura, gerado a partir do Vivaldi no desktop.
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="tabs-data.js"></script>
+<script src="heartbeat.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var POLL_MS = 15000;
+  var STALE_MS = 180000;
+
+  var els = {
+    app: document.getElementById('app'),
+    status: document.getElementById('status'),
+    statusText: document.getElementById('statusText'),
+    meta: document.getElementById('meta'),
+    search: document.getElementById('search'),
+    refresh: document.getElementById('refresh'),
+    device: document.getElementById('device'),
+    toast: document.getElementById('toast')
+  };
+
+  var state = {
+    data: window.__VIVALDI_TABS__ || null,
+    hb: window.__VIVALDI_HEARTBEAT__ || null,
+    query: readString('vivaldiTabs.search'),
+    collapsedWindows: readMap('vivaldiTabs.windows'),
+    collapsedStacks: readMap('vivaldiTabs.stacks'),
+    visibleTabs: 0,
+    totalTabs: 0
+  };
+
+  function readString(key) {
+    try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
+  }
+
+  function readMap(key) {
+    try {
+      var value = JSON.parse(localStorage.getItem(key) || '{}');
+      return value && typeof value === 'object' ? value : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveMap(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage indisponível */ }
+  }
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function time(value) {
+    var t = Date.parse(value);
+    return isNaN(t) ? 0 : t;
+  }
+
+  function domainOf(url) {
+    try {
+      var parsed = new URL(url);
+      if (parsed.protocol === 'file:') return 'arquivo local';
+      if (parsed.protocol === 'chrome:') return 'página interna';
+      return parsed.hostname || parsed.protocol.replace(':', '');
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function letterFor(tab) {
+    var source = domainOf(tab.url) || tab.title || '?';
+    return source.replace(/^www\./, '').charAt(0) || '?';
+  }
+
+  function fallbackName(tabs) {
+    if (!tabs.length) return 'Stack';
+    return tabs[0].title || domainOf(tabs[0].url) || 'Stack';
+  }
+
+  function clock(ms) {
+    try {
+      return new Date(ms).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function ago(ms) {
+    var seconds = Math.floor(Math.max(0, ms) / 1000);
+    if (seconds < 5) return 'agora';
+    if (seconds < 60) return 'há ' + seconds + ' s';
+    var minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return 'há ' + minutes + ' min';
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) return 'há ' + hours + ' h';
+    return 'há ' + Math.floor(hours / 24) + ' d';
+  }
+
+  function buildPages(tabs) {
+    var pages = [];
+    var seen = {};
+    tabs.forEach(function (tab) {
+      if (tab.stack && tab.stack.id) {
+        if (seen[tab.stack.id]) return;
+        seen[tab.stack.id] = true;
+        pages.push({
+          type: 'stack',
+          stack: tab.stack,
+          tabs: tabs.filter(function (other) {
+            return other.stack && other.stack.id === tab.stack.id;
+          })
+        });
+      } else {
+        pages.push({ type: 'tab', tab: tab });
+      }
+    });
+    return pages;
+  }
+
+  function tabMatches(tab, query) {
+    return ((tab.title || '') + ' ' + (tab.url || '')).toLowerCase().indexOf(query) !== -1;
+  }
+
+  function pageMatches(page, query) {
+    if (page.type === 'stack') {
+      if ((page.stack.name || '').toLowerCase().indexOf(query) !== -1) return true;
+      return page.tabs.some(function (tab) { return tabMatches(tab, query); });
+    }
+    return tabMatches(page.tab, query);
+  }
+
+  function favicon(tab) {
+    var holder = el('span', 'favicon');
+    var url = tab.favIconUrl || '';
+    var usable = url && !/^(chrome|moz|safari)-extension:/i.test(url);
+    if (!usable) {
+      holder.textContent = letterFor(tab);
+      return holder;
+    }
+    var img = new Image();
+    img.alt = '';
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = function () {
+      img.remove();
+      holder.textContent = letterFor(tab);
+    };
+    img.src = url;
+    holder.appendChild(img);
+    return holder;
+  }
+
+  function renderTab(tab) {
+    var row = el('div', 'tab');
+
+    var link = document.createElement('a');
+    link.className = 'tab-main';
+    link.href = tab.url || '#';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.title = tab.url || '';
+    link.appendChild(favicon(tab));
+
+    var texts = el('span', 'tab-texts');
+    texts.appendChild(el('span', 'tab-title', tab.title || tab.url || '(sem título)'));
+
+    var meta = el('span', 'tab-meta');
+    meta.appendChild(el('span', 'tab-domain', domainOf(tab.url)));
+    if (tab.pinned) meta.appendChild(el('span', 'badge badge-pin', 'fixada'));
+    if (tab.active) meta.appendChild(el('span', 'badge badge-active', 'ativa'));
+    texts.appendChild(meta);
+
+    link.appendChild(texts);
+    row.appendChild(link);
+
+    var copy = el('button', 'btn-copy', 'copiar');
+    copy.type = 'button';
+    copy.title = 'Copiar URL';
+    copy.addEventListener('click', function () {
+      copyText(tab.url || '').then(function (ok) {
+        showToast(ok ? 'URL copiada' : 'Não foi possível copiar');
+      });
+    });
+    row.appendChild(copy);
+
+    return row;
+  }
+
+  function renderStack(page, query) {
+    var stack = page.stack;
+    var tabs = page.tabs;
+    var key = stack.id;
+    var collapsed = !query && !!state.collapsedStacks[key];
+
+    var card = el('div', 'stack');
+
+    var head = el('div', 'stack-head');
+    var toggle = el('button', 'stack-toggle');
+    toggle.type = 'button';
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.appendChild(el('span', 'chevron', collapsed ? '▸' : '▾'));
+    toggle.appendChild(el('span', 'stack-name', stack.name || fallbackName(tabs)));
+    toggle.appendChild(el('span', 'stack-count', String(tabs.length)));
+    if (tabs.some(function (tab) { return tab.pinned; })) {
+      toggle.appendChild(el('span', 'badge badge-pin', 'fixado'));
+    }
+    toggle.addEventListener('click', function () {
+      if (query) return;
+      state.collapsedStacks[key] = !state.collapsedStacks[key];
+      saveMap('vivaldiTabs.stacks', state.collapsedStacks);
+      render();
+    });
+    head.appendChild(toggle);
+
+    var openAll = el('button', 'btn-open-all', 'Abrir tudo');
+    openAll.type = 'button';
+    openAll.title = 'Abrir todas as abas deste stack em novas abas';
+    openAll.addEventListener('click', function (event) {
+      event.stopPropagation();
+      openAllTabs(tabs);
+    });
+    head.appendChild(openAll);
+    card.appendChild(head);
+
+    if (!collapsed) {
+      var list = el('div', 'stack-tabs');
+      tabs.forEach(function (tab) { list.appendChild(renderTab(tab)); });
+      card.appendChild(list);
+    }
+
+    return card;
+  }
+
+  function renderWindow(win, index, pages, query, tabCount) {
+    var key = win.id != null ? 'w' + win.id : 'w' + index;
+    var collapsed = !query && !!state.collapsedWindows[key];
+
+    var section = el('section', 'window');
+    var head = el('button', 'window-head');
+    head.type = 'button';
+    head.setAttribute('aria-expanded', String(!collapsed));
+    head.appendChild(el('span', 'chevron', collapsed ? '▸' : '▾'));
+    head.appendChild(el('span', 'window-title', 'Janela ' + (index + 1)));
+    if (win.focused) head.appendChild(el('span', 'badge badge-focus', 'em uso'));
+    head.appendChild(el('span', 'window-count', tabCount + (tabCount === 1 ? ' aba' : ' abas')));
+    head.addEventListener('click', function () {
+      if (query) return;
+      state.collapsedWindows[key] = !state.collapsedWindows[key];
+      saveMap('vivaldiTabs.windows', state.collapsedWindows);
+      render();
+    });
+    section.appendChild(head);
+
+    if (!collapsed) {
+      var list = el('div', 'tabs');
+      pages.forEach(function (page) {
+        list.appendChild(page.type === 'stack' ? renderStack(page, query) : renderTab(page.tab));
+      });
+      section.appendChild(list);
+    }
+
+    return section;
+  }
+
+  function render() {
+    var scrollY = window.scrollY;
+    var data = state.data;
+    els.app.textContent = '';
+
+    if (!data || !Array.isArray(data.windows)) {
+      els.app.appendChild(el('p', 'empty',
+        'Nenhum dado recebido ainda. Verifique se o agente está rodando no Windows e se o Syncthing já sincronizou os arquivos.'));
+      state.visibleTabs = 0;
+      state.totalTabs = 0;
+      updateChrome();
+      return;
+    }
+
+    var query = state.query.trim().toLowerCase();
+    var visibleTabs = 0;
+    var totalTabs = 0;
+
+    data.windows.forEach(function (win, index) {
+      var tabs = Array.isArray(win.tabs) ? win.tabs : [];
+      totalTabs += tabs.length;
+      var pages = buildPages(tabs);
+      var shown = query ? pages.filter(function (page) { return pageMatches(page, query); }) : pages;
+      if (query && !shown.length) return;
+      var count = shown.reduce(function (sum, page) {
+        return sum + (page.type === 'stack' ? page.tabs.length : 1);
+      }, 0);
+      visibleTabs += count;
+      els.app.appendChild(renderWindow(win, index, shown, query, count));
+    });
+
+    if (query && !visibleTabs) {
+      els.app.appendChild(el('p', 'empty', 'Nenhuma aba corresponde à busca.'));
+    }
+
+    state.visibleTabs = visibleTabs;
+    state.totalTabs = totalTabs;
+    updateChrome();
+    try { window.scrollTo(0, scrollY); } catch (e) { /* ambiente sem scroll */ }
+  }
+
+  function updateChrome() {
+    var now = Date.now();
+    var extensionAt = time(state.hb && state.hb.extensionAt) || time(state.data && state.data.generatedAt);
+    var agentAt = time(state.hb && state.hb.agentAt);
+
+    var cls;
+    var label;
+    if (extensionAt && now - extensionAt < STALE_MS) {
+      cls = 'ok'; label = 'Atualizado';
+    } else if (agentAt && now - agentAt < STALE_MS) {
+      if (extensionAt) {
+        cls = 'warn'; label = 'Vivaldi fechado ou inativo';
+      } else {
+        cls = 'warn'; label = 'Aguardando o Vivaldi';
+      }
+    } else if (agentAt || extensionAt) {
+      cls = 'bad'; label = 'Desktop desconectado';
+    } else {
+      cls = 'bad'; label = 'Aguardando dados';
+    }
+    els.status.className = 'status ' + cls;
+    els.statusText.textContent = label;
+
+    els.device.textContent = (state.hb && state.hb.device) || (state.data && state.data.device) || '';
+
+    var parts = [];
+    var data = state.data;
+    if (data) {
+      var windows = data.windowCount != null ? data.windowCount : (data.windows || []).length;
+      parts.push(windows + (windows === 1 ? ' janela' : ' janelas'));
+      if (state.visibleTabs !== state.totalTabs) {
+        parts.push(state.visibleTabs + ' de ' + state.totalTabs + ' abas');
+      } else {
+        parts.push(state.totalTabs + (state.totalTabs === 1 ? ' aba' : ' abas'));
+      }
+      var snapAt = time(data.generatedAt);
+      if (snapAt) parts.push('snapshot às ' + clock(snapAt) + ' (' + ago(now - snapAt) + ')');
+    }
+    if (extensionAt) parts.push('Vivaldi ' + ago(now - extensionAt));
+    els.meta.textContent = parts.join(' · ');
+  }
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = src + '?t=' + Date.now();
+      script.onload = function () { script.remove(); resolve(); };
+      script.onerror = function () { script.remove(); reject(new Error('falha ao carregar ' + src)); };
+      document.head.appendChild(script);
+    });
+  }
+
+  function poll() {
+    // Clear previous globals so we can tell whether each file was actually
+    // loaded this time. Without this, a stale value from an earlier run would
+    // look like a successful refresh.
+    window.__VIVALDI_TABS__ = null;
+    window.__VIVALDI_HEARTBEAT__ = null;
+
+    return Promise.allSettled([loadScript('tabs-data.js'), loadScript('heartbeat.js')]).then(function (results) {
+      var dataLoaded = results[0].status === 'fulfilled' && window.__VIVALDI_TABS__ != null;
+      var hbLoaded = results[1].status === 'fulfilled' && window.__VIVALDI_HEARTBEAT__ != null;
+
+      var newData = dataLoaded ? window.__VIVALDI_TABS__ : null;
+      var newHeartbeat = hbLoaded ? window.__VIVALDI_HEARTBEAT__ : null;
+      var oldStamp = state.data && state.data.generatedAt;
+      var newStamp = newData && newData.generatedAt;
+
+      if (newData) state.data = newData;
+      if (newHeartbeat) state.hb = newHeartbeat;
+
+      if (newStamp && newStamp !== oldStamp) {
+        render();
+      } else {
+        updateChrome();
+      }
+
+      return dataLoaded || hbLoaded;
+    });
+  }
+
+  function copyText(text) {
+    if (!text) return Promise.resolve(false);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }).catch(function () {
+        return legacyCopy(text);
+      });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  function legacyCopy(text) {
+    var area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    area.remove();
+    return ok;
+  }
+
+  function openAllTabs(tabs) {
+    var urls = tabs.map(function (tab) { return tab.url; })
+      .filter(function (url) { return url && !/^(javascript|data|about):/i.test(url); });
+
+    var opened = 0;
+    urls.forEach(function (url) {
+      var handle = window.open(url, '_blank');
+      if (handle) {
+        try { handle.opener = null; } catch (e) { /* ignora */ }
+        opened += 1;
+      }
+    });
+
+    if (opened < urls.length) {
+      showToast('O navegador bloqueou parte das abas. Permita pop-ups para esta página e tente de novo.');
+    } else if (opened > 0) {
+      showToast(opened + (opened === 1 ? ' aba aberta' : ' abas abertas'));
+    }
+  }
+
+  var toastTimer = null;
+  function showToast(message) {
+    els.toast.textContent = message;
+    els.toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { els.toast.classList.remove('show'); }, 3200);
+  }
+
+  els.search.value = state.query;
+  els.search.addEventListener('input', function () {
+    state.query = els.search.value;
+    try { localStorage.setItem('vivaldiTabs.search', state.query); } catch (e) { /* ignora */ }
+    render();
+  });
+
+  els.refresh.addEventListener('click', function () {
+    poll().then(function (loaded) {
+      showToast(loaded ? 'Dados atualizados' : 'Não foi possível ler os arquivos de dados');
+    });
+  });
+
+  render();
+  setInterval(poll, POLL_MS);
+})();
+</script>
+</body>
+</html>

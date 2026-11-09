@@ -1,0 +1,6 @@
+{
+  "port": 8765,
+  "outputDir": "%USERPROFILE%\\Syncthing\\vivaldi-tabs",
+  "deviceName": "desktop-windows",
+  "heartbeatSeconds": 60
+}
